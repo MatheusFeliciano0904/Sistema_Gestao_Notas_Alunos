@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS alunos (
   matricula    VARCHAR(30)  NOT NULL UNIQUE,
   usuario_id   BIGINT NULL UNIQUE,
   FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
-) ENGINE=InnoDB;
+) ;
 
 -- DISCIPLINAS
 CREATE TABLE IF NOT EXISTS disciplinas (
