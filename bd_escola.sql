@@ -3,9 +3,7 @@ CREATE DATABASE  escola_notas;
 
 USE escola_notas;
 
--- 2) Tabelas
--- (Opcional) Zera o banco:
--- DROP DATABASE IF EXISTS escola_notas;
+
 
 CREATE DATABASE IF NOT EXISTS escola_notas;
 
