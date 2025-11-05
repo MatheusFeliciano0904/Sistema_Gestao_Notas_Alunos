@@ -1,7 +1,4 @@
--- 1) Banco
-CREATE DATABASE  escola_notas;
 
-USE escola_notas;
 
 
 
