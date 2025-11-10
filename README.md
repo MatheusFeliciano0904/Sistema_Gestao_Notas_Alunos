@@ -63,7 +63,7 @@ Substitua sua_senha pela senha real do seu MySQL.
 
 No terminal (PowerShell ou VS Code):
 
-cd "C:\Users\seu_usuario\Desktop\gestao-notas"
+cd "C:\Users\seu_usuario\Desktop\Sistema_Gestao_Notas_Alunos"
 python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
@@ -108,3 +108,8 @@ Acesse http://127.0.0.1:5000/ui
 
 Clique em “Carregar Dados” — o HTML faz requisições fetch() à API e mostra os resultados.
 
+<<<<<<< HEAD
+=======
+
+```
+>>>>>>> 8583bc75bf2866e26fa7adf4b13c5d6575754401
