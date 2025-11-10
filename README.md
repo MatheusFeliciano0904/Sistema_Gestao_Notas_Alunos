@@ -35,7 +35,7 @@ Tabelas principais:
 
 usuarios, professores, alunos, disciplinas,
 turmas, matriculas, avaliacoes, notas
-
+```
 💻 3. Estrutura do Projeto
 gestao-notas/
 ├── app.py
@@ -45,6 +45,7 @@ gestao-notas/
 ├── .env
 └── templates/
     └── index.html
+```
 
 🔑 4. Arquivo .env
 
