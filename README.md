@@ -51,12 +51,13 @@ gestao-notas/
 
 Crie na raiz do projeto o arquivo .env com as credenciais do seu MySQL:
 
+```
 DB_HOST=localhost
 DB_PORT=3306
 DB_USER=root
 DB_PASSWORD=sua_senha
 DB_NAME=escola_notas
-
+```
 
 Substitua sua_senha pela senha real do seu MySQL.
 
@@ -64,48 +65,34 @@ Substitua sua_senha pela senha real do seu MySQL.
 
 No terminal (PowerShell ou VS Code):
 
+```
 cd "C:\Users\seu_usuario\Desktop\Sistema_Gestao_Notas_Alunos"
 python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
-
+```
 
 Conteúdo mínimo do requirements.txt:
 
+```
 Flask==3.0.3
 mysql-connector-python==9.0.0
 python-dotenv==1.0.1
+```
 
 🚀 6. Executar o Sistema
 
 Com o ambiente virtual ativo:
 
+```
 python app.py
 
-
+```
 Saída esperada:
-
+```
  * Running on http://127.0.0.1:5000
 
-🌐 7. Acesso no Navegador
-
-Página inicial:
-👉 http://127.0.0.1:5000
-
-Interface simples (HTML):
-👉 http://127.0.0.1:5000/ui
-
-Verificar status da API:
-👉 http://127.0.0.1:5000/health
-
-
-O arquivo templates/index.html exibe dados básicos em listas e é carregado via /ui.
-
-Para testar:
-
-Suba o Flask (python app.py)
-
-Acesse http://127.0.0.1:5000/ui
+```
 
 Clique em “Carregar Dados” — o HTML faz requisições fetch() à API e mostra os resultados.
 
