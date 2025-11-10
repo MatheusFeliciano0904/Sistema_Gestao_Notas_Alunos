@@ -63,7 +63,7 @@ Substitua sua_senha pela senha real do seu MySQL.
 
 No terminal (PowerShell ou VS Code):
 
-cd "C:\Users\seu_usuario\Desktop\gestao-notas"
+cd "C:\Users\seu_usuario\Desktop\Sistema_Gestao_Notas_Alunos"
 python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
