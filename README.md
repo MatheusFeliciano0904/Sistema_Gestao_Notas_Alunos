@@ -86,18 +86,10 @@ Com o ambiente virtual ativo:
 
 ```
 python app.py
-
 ```
 Saída esperada:
 ```
  * Running on http://127.0.0.1:5000
-
 ```
 
 Clique em “Carregar Dados” — o HTML faz requisições fetch() à API e mostra os resultados.
-
-<<<<<<< HEAD
-=======
-
-```
->>>>>>> 8583bc75bf2866e26fa7adf4b13c5d6575754401
