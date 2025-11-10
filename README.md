@@ -1,4 +1,4 @@
-```
+
 🏫 Sistema de Gestão de Notas de Alunos
 
 Um sistema acadêmico simples desenvolvido em Python (Flask) com MySQL, que permite gerenciar alunos, disciplinas, turmas, matrículas, avaliações e notas.
@@ -108,5 +108,3 @@ Acesse http://127.0.0.1:5000/ui
 
 Clique em “Carregar Dados” — o HTML faz requisições fetch() à API e mostra os resultados.
 
-
-```
