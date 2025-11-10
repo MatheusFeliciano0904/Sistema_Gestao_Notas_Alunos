@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Gestão de Notas</title>
+</head>
+<body>
+  <h1>Gestão de Notas</h1>
+
+  <button onclick="carregar()">Carregar Dados</button>
+  <p id="status"></p>
+
+  <h2>Alunos</h2>
+  <ul id="alunos"></ul>
+
+  <h2>Disciplinas</h2>
+  <ul id="disciplinas"></ul>
+
+  <h2>Turmas</h2>
+  <ul id="turmas"></ul>
+
+  <h2>Notas</h2>
+  <ul id="notas"></ul>
+
+  <script>
+    async function carregar() {
+      document.getElementById("status").innerText = "Carregando...";
+
+      try {
+        const alunos = await fetch("/alunos").then(r => r.json());
+        const disciplinas = await fetch("/disciplinas").then(r => r.json());
+        const turmas = await fetch("/turmas").then(r => r.json());
+        const notas = await fetch("/notas").then(r => r.json());
+
+        // Mostra alunos
+        let listaAlunos = "";
+        alunos.forEach(a => listaAlunos += `<li>${a.id} - ${a.nome} (${a.matricula})</li>`);
+        document.getElementById("alunos").innerHTML = listaAlunos || "<li>Nenhum aluno encontrado.</li>";
+
+        // Mostra disciplinas
+        let listaDisciplinas = "";
+        disciplinas.forEach(d => listaDisciplinas += `<li>${d.codigo} - ${d.nome}</li>`);
+        document.getElementById("disciplinas").innerHTML = listaDisciplinas || "<li>Nenhuma disciplina encontrada.</li>";
+
+        // Mostra turmas
+        let listaTurmas = "";
+        turmas.forEach(t => listaTurmas += `<li>${t.id} - ${t.disciplina_nome} (${t.ano}/${t.semestre})</li>`);
+        document.getElementById("turmas").innerHTML = listaTurmas || "<li>Nenhuma turma encontrada.</li>";
+
+        // Mostra notas
+        let listaNotas = "";
+        notas.forEach(n => listaNotas += `<li>${n.id} - Avaliação ${n.avaliacao_id} / Matrícula ${n.matricula_id}: ${n.nota}</li>`);
+        document.getElementById("notas").innerHTML = listaNotas || "<li>Nenhuma nota lançada.</li>";
+
+        document.getElementById("status").innerText = "Dados carregados com sucesso ✅";
+      } catch (err) {
+        document.getElementById("status").innerText = "Erro ao carregar dados ❌";
+        console.error(err);
+      }
+    }
+  </script>
+</body>
+</html>
