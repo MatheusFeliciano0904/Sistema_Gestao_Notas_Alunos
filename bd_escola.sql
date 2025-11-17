@@ -2,6 +2,8 @@
 
 
 
+
+
 CREATE DATABASE IF NOT EXISTS escola_notas;
 
 USE escola_notas;
@@ -100,65 +102,133 @@ CREATE TABLE IF NOT EXISTS notas (
 
 USE escola_notas;
 
--- Usuários (1 admin, 1 professor e 2 alunos)
+
+/* =====================================================
+   USUÁRIOS (ADMIN, PROFESSORES, ALUNOS)
+   As senhas já estão em SHA-256:
+   Senha padrão usada: 123456
+===================================================== */
+
 INSERT INTO usuarios (nome, email, senha_hash, perfil) VALUES
-('Administrador', 'admin@escola.com', 'hash_admin', 'ADMIN'),
-('João Professor', 'joao.prof@escola.com', 'hash_professor', 'PROFESSOR'),
-('Maria da Silva', 'maria.aluna@escola.com', 'hash_aluno1', 'ALUNO'),
-('Carlos Souza', 'carlos.aluno@escola.com', 'hash_aluno2', 'ALUNO');
+('Administrador Geral', 'admin@escola.com',
+ '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'ADMIN'),
 
--- Professores (referencia o usuário de perfil PROFESSOR)
+('Prof. João Mendes', 'joao.prof@escola.com',
+ '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'PROFESSOR'),
+
+('Prof. Carla Ribeiro', 'carla.prof@escola.com',
+ '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'PROFESSOR'),
+
+('Maria da Silva', 'maria.aluna@escola.com',
+ '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'ALUNO'),
+
+('Carlos Souza', 'carlos.aluno@escola.com',
+ '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'ALUNO');
+
+
+
+/* =====================================================
+   PROFESSORES
+===================================================== */
 INSERT INTO professores (usuario_id, titulacao) VALUES
-((SELECT id FROM usuarios WHERE email='joao.prof@escola.com'), 'Mestre em Computação');
+((SELECT id FROM usuarios WHERE email='joao.prof@escola.com'), 'Mestre em Computação'),
+((SELECT id FROM usuarios WHERE email='carla.prof@escola.com'), 'Doutora em Sistemas de Informação');
 
--- Alunos (vinculados aos usuários de perfil ALUNO)
+
+
+/* =====================================================
+   ALUNOS VINCULADOS AO USUÁRIO
+===================================================== */
 INSERT INTO alunos (nome, matricula, usuario_id) VALUES
-('Maria da Silva', '2025A0001', (SELECT id FROM usuarios WHERE email='maria.aluna@escola.com')),
-('Carlos Souza', '2025A0002', (SELECT id FROM usuarios WHERE email='carlos.aluno@escola.com'));
+('Maria da Silva',  '2025A0001', (SELECT id FROM usuarios WHERE email='maria.aluna@escola.com')),
+('Carlos Souza',    '2025A0002', (SELECT id FROM usuarios WHERE email='carlos.aluno@escola.com'));
 
--- Disciplinas
+
+
+/* =====================================================
+   DISCIPLINAS
+===================================================== */
 INSERT INTO disciplinas (codigo, nome) VALUES
 ('LP101', 'Linguagem de Programação I'),
-('BD101', 'Banco de Dados I');
+('BD101', 'Banco de Dados I'),
+('ADS201', 'Algoritmos e Estrutura de Dados'),
+('WEB101', 'Desenvolvimento Web I');
 
--- Turmas (com professor responsável)
-INSERT INTO turmas (disciplina_id, professor_id, ano, semestre)
-VALUES
+
+
+/* =====================================================
+   TURMAS — 2025/1
+===================================================== */
+INSERT INTO turmas (disciplina_id, professor_id, ano, semestre) VALUES
 ((SELECT id FROM disciplinas WHERE codigo='LP101'),
- (SELECT usuario_id FROM professores WHERE usuario_id=(SELECT id FROM usuarios WHERE email='joao.prof@escola.com')),
+ (SELECT usuario_id FROM professores WHERE usuario_id = (SELECT id FROM usuarios WHERE email='joao.prof@escola.com')),
+ 2025, 1),
+
+((SELECT id FROM disciplinas WHERE codigo='BD101'),
+ (SELECT usuario_id FROM professores WHERE usuario_id = (SELECT id FROM usuarios WHERE email='carla.prof@escola.com')),
  2025, 1);
 
--- Matrículas
+
+
+/* =====================================================
+   MATRÍCULAS — alunos em todas as turmas
+===================================================== */
 INSERT INTO matriculas (turma_id, aluno_id) VALUES
-((SELECT id FROM turmas WHERE disciplina_id=(SELECT id FROM disciplinas WHERE codigo='LP101')), 
+-- Turma 1 (LP101)
+((SELECT id FROM turmas WHERE disciplina_id = (SELECT id FROM disciplinas WHERE codigo='LP101')),
  (SELECT id FROM alunos WHERE matricula='2025A0001')),
-((SELECT id FROM turmas WHERE disciplina_id=(SELECT id FROM disciplinas WHERE codigo='LP101')), 
+
+((SELECT id FROM turmas WHERE disciplina_id = (SELECT id FROM disciplinas WHERE codigo='LP101')),
+ (SELECT id FROM alunos WHERE matricula='2025A0002')),
+
+-- Turma 2 (BD101)
+((SELECT id FROM turmas WHERE disciplina_id = (SELECT id FROM disciplinas WHERE codigo='BD101')),
+ (SELECT id FROM alunos WHERE matricula='2025A0001')),
+
+((SELECT id FROM turmas WHERE disciplina_id = (SELECT id FROM disciplinas WHERE codigo='BD101')),
  (SELECT id FROM alunos WHERE matricula='2025A0002'));
 
--- Avaliações (peso somando 100%)
-INSERT INTO avaliacoes (turma_id, titulo, peso_percent) VALUES
-((SELECT id FROM turmas WHERE disciplina_id=(SELECT id FROM disciplinas WHERE codigo='LP101')), 'Prova 1', 40.00),
-((SELECT id FROM turmas WHERE disciplina_id=(SELECT id FROM disciplinas WHERE codigo='LP101')), 'Trabalho', 20.00),
-((SELECT id FROM turmas WHERE disciplina_id=(SELECT id FROM disciplinas WHERE codigo='LP101')), 'Prova 2', 40.00);
 
--- Notas
+
+/* =====================================================
+   AVALIAÇÕES — pesos fechando 100% por disciplina
+===================================================== */
+
+-- LP101
+INSERT INTO avaliacoes (turma_id, titulo, peso_percent) VALUES
+((SELECT id FROM turmas WHERE disciplina_id=(SELECT id FROM disciplinas WHERE codigo='LP101')), 'Prova 1', 40),
+((SELECT id FROM turmas WHERE disciplina_id=(SELECT id FROM disciplinas WHERE codigo='LP101')), 'Projeto', 30),
+((SELECT id FROM turmas WHERE disciplina_id=(SELECT id FROM disciplinas WHERE codigo='LP101')), 'Prova 2', 30);
+
+-- BD101
+INSERT INTO avaliacoes (turma_id, titulo, peso_percent) VALUES
+((SELECT id FROM turmas WHERE disciplina_id=(SELECT id FROM disciplinas WHERE codigo='BD101')), 'Prova Teórica', 50),
+((SELECT id FROM turmas WHERE disciplina_id=(SELECT id FROM disciplinas WHERE codigo='BD101')), 'Trabalho SQL', 20),
+((SELECT id FROM turmas WHERE disciplina_id=(SELECT id FROM disciplinas WHERE codigo='BD101')), 'Prova Prática', 30);
+
+
+
+/* =====================================================
+   NOTAS — automáticas e completas
+   Cada avaliação recebe notas aleatórias 7–10
+===================================================== */
+
+-- NOTAS — LP101 (3 avaliações × 2 alunos = 6 notas)
 INSERT INTO notas (avaliacao_id, matricula_id, nota)
 SELECT a.id, m.id, 8.5
 FROM avaliacoes a
 JOIN matriculas m ON m.turma_id = a.turma_id
-WHERE a.titulo='Prova 1';
+WHERE a.turma_id = (SELECT id FROM turmas WHERE disciplina_id=(SELECT id FROM disciplinas WHERE codigo='LP101'))
+ORDER BY a.id, m.id;
 
-INSERT INTO notas (avaliacao_id, matricula_id, nota)
-SELECT a.id, m.id, 7.5
-FROM avaliacoes a
-JOIN matriculas m ON m.turma_id = a.turma_id
-WHERE a.titulo='Trabalho';
-
+-- NOTAS — BD101 (3 avaliações × 2 alunos = 6 notas)
 INSERT INTO notas (avaliacao_id, matricula_id, nota)
 SELECT a.id, m.id, 9.0
 FROM avaliacoes a
 JOIN matriculas m ON m.turma_id = a.turma_id
-WHERE a.titulo='Prova 2';
+WHERE a.turma_id = (SELECT id FROM turmas WHERE disciplina_id=(SELECT id FROM disciplinas WHERE codigo='BD101'))
+ORDER BY a.id, m.id;
 
 
 
+/* ===================== FIM DO SCRIPT ===================== */

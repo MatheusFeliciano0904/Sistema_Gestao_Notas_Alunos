@@ -1,95 +1,114 @@
+# 📚 Sistema de Gestão de Notas de Alunos
 
-🏫 Sistema de Gestão de Notas de Alunos
+Projeto acadêmico desenvolvido para a disciplina **Linguagem de Programação**, utilizando:
 
-Um sistema acadêmico simples desenvolvido em Python (Flask) com MySQL, que permite gerenciar alunos, disciplinas, turmas, matrículas, avaliações e notas.
-Ideal como projeto de faculdade para a disciplina de Linguagem de Programação.
+- **Python + Flask** (backend)
+- **MySQL** (banco de dados)
+- **HTML + CSS + JavaScript** (frontend simples via Flask templates)
 
-⚙️ 1. Requisitos
+O sistema permite:
 
-Python 3.10+
-
-MySQL 8+
-
-Pip instalado
-
-VS Code ou MySQL Workbench
-
-🗄️ 2. Configuração do Banco de Dados
-
-Abra o MySQL Workbench (ou terminal MySQL).
-
-Execute o script bd_escola.sql (ou equivalente):
-
-        SOURCE C:/caminho/para/gestao-notas/bd_escola.sql;
+✔ Cadastro de alunos  
+✔ Cadastro de disciplinas  
+✔ Cadastro de turmas  
+✔ Matrículas  
+✔ Criação de avaliações  
+✔ Lançamento de notas  
+✔ Geração de boletim  
+✔ Gráfico de médias do aluno  
 
 
-Isso criará o banco escola_notas com todas as tabelas e dados de exemplo.
+## 🚀 1. Requisitos
 
-Verifique:
+Antes de rodar o projeto, instale:
 
-        USE escola_notas;
-        SHOW TABLES;
+- Python 3.x  
+- MySQL Server (ou Workbench)  
+- pip (gerenciador de pacotes do Python)  
 
 
-Tabelas principais:
+## 🗄 2. Criar o Banco de Dados
 
-usuarios, professores, alunos, disciplinas,
-turmas, matriculas, avaliacoes, notas
+Abra o MySQL Workbench ou outro cliente SQL e execute o arquivo:
+
+``script.sql``
+
+Ele criará o banco **escola_notas**, tabelas, relacionamentos e dados de exemplo.
+
+
+## 📁 3. Estrutura do Projeto
 ```
-💻 3. Estrutura do Projeto
-gestao-notas/
-├── app.py
-├── db.py
-├── requirements.txt
-├── bd_escola.sql
-├── .env
+Sistema_Gestao_Notas_Alunos/
+│── app.py
+│── db.py
+│── script.sql
+│── .env ← será criado no próximo passo
+│── requirements.txt ← opcional
 └── templates/
-    └── index.html
+│── index.html
+│── boletim.html
+└── grafico.html
 ```
 
-🔑 4. Arquivo .env
 
-Crie na raiz do projeto o arquivo .env com as credenciais do seu MySQL:
 
+## 🔧 4. Configurar o Acesso ao Banco (.env)
+
+Na raiz do projeto, crie o arquivo **.env** com:
 ```
 DB_HOST=localhost
-DB_PORT=3306
 DB_USER=root
-DB_PASSWORD=sua_senha
+DB_PASS=sua_senha_do_mysql
 DB_NAME=escola_notas
 ```
 
-Substitua sua_senha pela senha real do seu MySQL.
 
-🧩 5. Ambiente Virtual e Instalação
+⚠ O nome do banco deve ser exatamente **escola_notas**.
 
-No terminal (PowerShell ou VS Code):
+
+## 🧪 5. Criar o Ambiente Virtual (venv)
+
+No terminal, dentro da pasta do projeto:
+
+### 5.1 Criar venv
+```
+python -m venv venv
+```
+
+### 5.2 Ativar venv
+
+Windows:
+```
+venv\Scripts\activate
+```
+
+## 📦 6. Instalar Dependências
+
+Com o venv ativo:
 
 ```
-cd "C:\Users\seu_usuario\Desktop\Sistema_Gestao_Notas_Alunos"
-python -m venv .venv
-.venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-Conteúdo mínimo do requirements.txt:
 
-```
-Flask==3.0.3
-mysql-connector-python==9.0.0
-python-dotenv==1.0.1
-```
 
-🚀 6. Executar o Sistema
-
-Com o ambiente virtual ativo:
+## ▶ 7. Executar a Aplicação
 
 ```
 python app.py
 ```
-Saída esperada:
-```
- * Running on http://127.0.0.1:5000
-```
 
-Clique em “Carregar Dados” — o HTML faz requisições fetch() à API e mostra os resultados.
+
+
+A aplicação iniciará em:
+
+http://localhost:5000
+
+A interface estará em:
+
+http://localhost:5000/ui
+
+
+## 🎉 Pronto!
+
+O sistema está funcionando completamente!

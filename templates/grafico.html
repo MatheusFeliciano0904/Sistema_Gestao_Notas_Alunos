@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Boletim do Aluno</title>
+  <title>Gráfico de Médias por Disciplina</title>
   <style>
     body {
       font-family: Arial, Helvetica, sans-serif;
@@ -10,7 +10,6 @@
       background: #f5f5f5;
       color: #333;
     }
-    
 
     .navbar {
       background: #1f2933;
@@ -52,7 +51,7 @@
 
     .box {
       background: #ffffff;
-      padding: 18px 20px;
+      padding: 18px 20px 25px;
       border-radius: 8px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.06);
       margin-bottom: 20px;
@@ -91,37 +90,18 @@
       background: #2563eb;
     }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-      background: #ffffff;
-      border-radius: 6px;
-      overflow: hidden;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    }
-
-    th, td {
-      font-size: 13px;
-      padding: 6px 8px;
-      border-bottom: 1px solid #e5e7eb;
-      text-align: left;
-    }
-
-    thead {
-      background: #e5e7eb;
-    }
-
-    tr:last-child td {
-      border-bottom: none;
-    }
-
     .empty-text {
       font-size: 13px;
       color: #777;
       margin-top: 10px;
     }
+
+    #chart-container {
+      margin-top: 20px;
+    }
   </style>
+  <!-- CDN do Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
   <!-- Navbar -->
@@ -136,83 +116,87 @@
 
   <main class="container">
     <section class="box">
-      <h2>Boletim do Aluno</h2>
+      <h2>Gráfico de Médias por Disciplina</h2>
       <p style="font-size: 13px; margin-top: 0;">
-        Informe o <b>ID do aluno</b> e clique em <b>Carregar boletim</b>.  
-        As médias e situações são calculadas pelo back-end.
+        Informe o <b>ID do aluno</b> e clique em <b>Gerar gráfico</b> para visualizar a média
+        em cada disciplina.
       </p>
 
       <div style="margin-top: 8px;">
         <label for="alunoId">ID do aluno:</label>
         <input type="number" id="alunoId" min="1" />
-        <button class="btn" onclick="carregarBoletim()">Carregar boletim</button>
+        <button class="btn" onclick="carregarGrafico()">Gerar gráfico</button>
       </div>
 
       <p id="infoAluno" class="empty-text"></p>
 
-      <div id="boletimContainer"></div>
+      <div id="chart-container">
+        <canvas id="chartMedias" height="120"></canvas>
+      </div>
     </section>
   </main>
 
   <script>
-    async function carregarBoletim() {
+    let chartInstance = null;
+
+    async function carregarGrafico() {
       const id = document.getElementById("alunoId").value.trim();
       const infoAluno = document.getElementById("infoAluno");
-      const container = document.getElementById("boletimContainer");
-      container.innerHTML = "";
-      infoAluno.textContent = "";
 
       if (!id) {
         alert("Informe o ID do aluno.");
         return;
       }
 
+      infoAluno.textContent = "";
+      if (chartInstance) {
+        chartInstance.destroy();
+        chartInstance = null;
+      }
+
       try {
         const resp = await fetch(`/relatorios/alunos/${id}/boletim`);
         if (!resp.ok) {
-          alert("Erro ao buscar boletim: " + resp.status);
+          alert("Erro ao buscar dados: " + resp.status);
           return;
         }
         const dados = await resp.json();
 
         if (!dados || dados.length === 0) {
-          infoAluno.textContent = "Nenhum registro de boletim encontrado para este aluno.";
+          infoAluno.textContent = "Nenhum dado de boletim encontrado para este aluno.";
           return;
         }
 
-        infoAluno.textContent = `Boletim do aluno ID ${id}`;
+        infoAluno.textContent = `Médias do aluno ID ${id}`;
 
-        let thead = `
-          <tr>
-            <th>Cód. Disciplina</th>
-            <th>Disciplina</th>
-            <th>Ano</th>
-            <th>Semestre</th>
-            <th>Média Final</th>
-            <th>Situação</th>
-          </tr>
-        `;
+        // Monta labels e médias
+        const labels = dados.map(d => `${d.disciplina_codigo} - ${d.disciplina_nome}`);
+        const medias = dados.map(d => d.media_final ?? 0);
 
-        let linhas = dados.map(l => `
-          <tr>
-            <td>${l.disciplina_codigo}</td>
-            <td>${l.disciplina_nome}</td>
-            <td>${l.ano}</td>
-            <td>${l.semestre}</td>
-            <td>${l.media_final ?? "-"}</td>
-            <td>${l.situacao}</td>
-          </tr>
-        `).join("");
+        const ctx = document.getElementById("chartMedias").getContext("2d");
+        chartInstance = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: labels,
+            datasets: [{
+              label: "Média final",
+              data: medias
+            }]
+          },
+          options: {
+            responsive: true,
+            scales: {
+              y: {
+                beginAtZero: true,
+                max: 10
+              }
+            }
+          }
+        });
 
-        container.innerHTML = `
-          <table>
-            <thead>${thead}</thead>
-            <tbody>${linhas}</tbody>
-          </table>
-        `;
       } catch (e) {
         console.error(e);
-        alert("Erro ao carregar boletim.");
+        alert("Erro ao gerar gráfico.");
       }
     }
   </script>

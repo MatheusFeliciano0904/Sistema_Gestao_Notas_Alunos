@@ -1,6 +1,8 @@
-from flask import Flask, request, jsonify, render_template, redirect, url_for
+from flask import Flask, request, jsonify, render_template, redirect, url_for, make_response
 from db import query, execute
 import hashlib
+from functools import wraps
+
 
 
 app = Flask(__name__, template_folder="templates")
@@ -13,10 +15,31 @@ def hash_pwd(plain: str) -> str:
     """Gera um hash simples (SHA-256) da senha em texto puro."""
     return hashlib.sha256(plain.encode("utf-8")).hexdigest()
 
+def require_role(*perfis_permitidos):
+    """
+    Exemplo de uso:
+    @require_role("ADMIN")
+    def criar_disciplina(): ...
+    """
+    def decorator(fn):
+        @wraps(fn)
+        def wrapper(*args, **kwargs):
+            # Para fins didáticos, vamos ler o perfil de um cabeçalho HTTP.
+            # Ex.: X-Perfil: ADMIN
+            perfil = request.headers.get("X-Perfil")
+            if perfil not in perfis_permitidos:
+                return {"erro": "Acesso negado. Perfil necessário: " + "/".join(perfis_permitidos)}, 403
+            return fn(*args, **kwargs)
+        return wrapper
+    return decorator
+
+
 # --------- PÁGINAS ---------
 @app.get("/")
 def root():
     return redirect(url_for("ui"))
+
+
 
 @app.get("/ui")
 def ui():
@@ -25,6 +48,11 @@ def ui():
 @app.get("/boletim")
 def boletim_page():
     return render_template("boletim.html")
+
+@app.get("/grafico")
+def grafico_page():
+    return render_template("grafico.html")
+
 
 @app.get("/health")
 def health():
@@ -102,7 +130,6 @@ def alunos_delete(aluno_id):
     except Exception as e:
         return {"erro": str(e)}, 400
 
-
 # ---------- Login ----------
 
 @app.post("/login")
@@ -147,6 +174,7 @@ def login():
 
 # ---------- DISCIPLINAS ----------
 @app.post("/disciplinas")
+@require_role("ADMIN")
 def disciplinas_post():
     d = request.get_json(silent=True) or {}
     err = need(d, ["codigo", "nome"])
@@ -165,8 +193,46 @@ def disciplinas_post():
 def disciplinas_get():
     return jsonify(query("SELECT * FROM disciplinas ORDER BY id DESC"))
 
+
+@app.put("/disciplinas/<int:disciplina_id>")
+@require_role("ADMIN")
+def disciplinas_update(disciplina_id):
+    """
+    Atualiza o nome e/ou código da disciplina.
+    JSON: { "codigo": "XX", "nome": "Novo nome" }
+    """
+    d = request.get_json(silent=True) or {}
+    # Pelo menos um campo deve ser enviado
+    if not d.get("codigo") and not d.get("nome"):
+        return {"erro": "Informe ao menos 'codigo' ou 'nome' para atualizar."}, 400
+
+    # Montar SQL dinamicamente simples
+    campos = []
+    params = []
+
+    if d.get("codigo"):
+        campos.append("codigo = %s")
+        params.append(d["codigo"])
+    if d.get("nome"):
+        campos.append("nome = %s")
+        params.append(d["nome"])
+
+    params.append(disciplina_id)
+
+    sql = "UPDATE disciplinas SET " + ", ".join(campos) + " WHERE id = %s"
+
+    try:
+        afetados = execute(sql, tuple(params))
+        if afetados == 0:
+            return {"erro": "Disciplina não encontrada"}, 404
+        return query("SELECT * FROM disciplinas WHERE id=%s", (disciplina_id,))[0], 200
+    except Exception as e:
+        return {"erro": str(e)}, 400
+
+
 # ---------- TURMAS ----------
 @app.post("/turmas")
+@require_role("ADMIN")
 def turmas_post():
     d = request.get_json(silent=True) or {}
     err = need(d, ["disciplina_id", "ano", "semestre"])
@@ -194,6 +260,48 @@ def turmas_get():
            FROM turmas t JOIN disciplinas d ON d.id=t.disciplina_id
            ORDER BY t.id DESC"""
     ))
+    
+@app.put("/turmas/<int:turma_id>")
+@require_role("ADMIN")
+def turmas_update(turma_id):
+    """
+    Atualiza ano, semestre ou professor de uma turma.
+    JSON: { "ano": 2025, "semestre": 2, "professor_id": 3 }
+    """
+    d = request.get_json(silent=True) or {}
+    if not any(k in d for k in ("ano", "semestre", "professor_id")):
+        return {"erro": "Informe ao menos 'ano', 'semestre' ou 'professor_id'."}, 400
+
+    campos = []
+    params = []
+
+    if "ano" in d:
+        campos.append("ano = %s")
+        params.append(d["ano"])
+    if "semestre" in d:
+        campos.append("semestre = %s")
+        params.append(d["semestre"])
+    if "professor_id" in d:
+        campos.append("professor_id = %s")
+        params.append(d["professor_id"])
+
+    params.append(turma_id)
+    sql = "UPDATE turmas SET " + ", ".join(campos) + " WHERE id = %s"
+
+    try:
+        afetados = execute(sql, tuple(params))
+        if afetados == 0:
+            return {"erro": "Turma não encontrada"}, 404
+        turma = query(
+            """SELECT t.*, d.codigo disciplina_codigo, d.nome disciplina_nome
+               FROM turmas t JOIN disciplinas d ON d.id=t.disciplina_id
+               WHERE t.id=%s""",
+            (turma_id,)
+        )[0]
+        return turma, 200
+    except Exception as e:
+        return {"erro": str(e)}, 400
+
 
 # ---------- MATRÍCULAS ----------
 @app.post("/matriculas")
@@ -248,6 +356,7 @@ def avaliacoes_get():
 
 # ---------- NOTAS (upsert) ----------
 @app.post("/notas")
+@require_role("PROFESSOR")
 def notas_post():
     d = request.get_json(silent=True) or {}
     err = need(d, ["avaliacao_id", "matricula_id", "nota"])
@@ -307,6 +416,54 @@ def relatorio_boletim_aluno(aluno_id):
     """
     return jsonify(query(sql, (aluno_id,)))
 
+
+# ---------- BOLETIM variação ----------
+
+@app.get("/relatorios/alunos/<int:aluno_id>/boletim.csv")
+def relatorio_boletim_aluno_csv(aluno_id):
+    """
+    Exporta o boletim do aluno em formato CSV.
+    """
+    sql = """
+    SELECT
+      d.codigo AS disciplina_codigo,
+      d.nome   AS disciplina_nome,
+      t.ano,
+      t.semestre,
+      ROUND(
+        CASE WHEN SUM(av.peso_percent) = 0 THEN NULL
+             ELSE SUM(COALESCE(n.nota, 0) * av.peso_percent) / SUM(av.peso_percent)
+        END, 2
+      ) AS media_final,
+      CASE
+        WHEN SUM(av.peso_percent) = 0 THEN 'EM ANDAMENTO'
+        WHEN (SUM(COALESCE(n.nota, 0) * av.peso_percent) / SUM(av.peso_percent)) >= 6.0
+          THEN 'APROVADO'
+        ELSE 'REPROVADO'
+      END AS situacao
+    FROM matriculas m
+    JOIN turmas t       ON t.id = m.turma_id
+    JOIN disciplinas d  ON d.id = t.disciplina_id
+    JOIN avaliacoes av  ON av.turma_id = t.id
+    LEFT JOIN notas n   ON n.avaliacao_id = av.id AND n.matricula_id = m.id
+    WHERE m.aluno_id = %s
+    GROUP BY d.codigo, d.nome, t.ano, t.semestre
+    ORDER BY t.ano DESC, t.semestre DESC, d.nome;
+    """
+    dados = query(sql, (aluno_id,))
+
+    # Montar CSV na mão (simples)
+    linhas = ["disciplina_codigo;disciplina_nome;ano;semestre;media_final;situacao"]
+    for r in dados:
+        linha = f"{r['disciplina_codigo']};{r['disciplina_nome']};{r['ano']};{r['semestre']};{r['media_final']};{r['situacao']}"
+        linhas.append(linha)
+
+    csv_str = "\n".join(linhas)
+
+    resp = make_response(csv_str)
+    resp.headers["Content-Type"] = "text/csv; charset=utf-8"
+    resp.headers["Content-Disposition"] = f"attachment; filename=boletim_aluno_{aluno_id}.csv"
+    return resp
 
 
 

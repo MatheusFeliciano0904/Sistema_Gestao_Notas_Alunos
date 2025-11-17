@@ -3,60 +3,300 @@
 <head>
   <meta charset="UTF-8">
   <title>Gestão de Notas</title>
+  <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      margin: 0;
+      background: #f5f5f5ff;
+      color: #333;
+    }
+
+    /* Barra superior */
+    .navbar {
+      background: #1f2933;
+      color: #fff;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .navbar h1 {
+      font-size: 20px;
+      margin: 0;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 10px;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      color: #fff;
+      background: #3b82f6;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    .nav-links a:hover {
+      background: #2563eb;
+    }
+
+    /* Conteúdo principal */
+    .container {
+      max-width: 1100px;
+      margin: 20px auto;
+      padding: 0 15px 30px;
+    }
+
+    .intro {
+      background: #ffffff;
+      padding: 15px 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+      margin-bottom: 20px;
+    }
+
+    .intro h2 {
+      margin-top: 0;
+    }
+
+    .intro p {
+      margin: 5px 0;
+      font-size: 14px;
+    }
+
+    /* Cards de funcionalidades */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 8px;
+      padding: 15px 15px 18px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .card h3 {
+      margin-top: 0;
+      margin-bottom: 8px;
+    }
+
+    .card p {
+      font-size: 13px;
+      margin-bottom: 10px;
+      color: #555;
+    }
+
+    .btn {
+      display: inline-block;
+      background: #3b82f6;
+      color: #fff;
+      padding: 6px 10px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .btn:hover {
+      background: #2563eb;
+    }
+
+    /* Títulos das seções de dados */
+    .section-title {
+      margin: 25px 0 8px;
+      font-size: 18px;
+    }
+
+    /* Tabelas de dados */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 10px;
+      background: #ffffff;
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    th, td {
+      font-size: 13px;
+      padding: 6px 8px;
+      border-bottom: 1px solid #e5e7eb;
+      text-align: left;
+    }
+
+    thead {
+      background: #e5e7eb;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .empty-text {
+      font-size: 13px;
+      color: #777;
+      margin: 0 0 3px 2px;
+    }
+  </style>
 </head>
 <body>
-  <h1>Gestão de Notas</h1>
 
-  <button onclick="carregar()">Carregar Dados</button>
-  <p id="status"></p>
+  <!-- Barra de navegação -->
+  <header class="navbar">
+    <h1>Sistema de Gestão de Notas</h1>
+    <nav class="nav-links">
+      <a href="/ui">Início</a>
+      <a href="/boletim">Boletim do Aluno</a>
+      <a href="/grafico">Gráfico de Médias</a>
+    </nav>
+  </header>
 
-  <h2>Alunos</h2>
-  <ul id="alunos"></ul>
+  <main class="container">
+    <!-- Introdução -->
+    <section class="intro">
+      <h2>Bem-vindo!</h2>
+      <p>Use os botões abaixo para visualizar as principais informações do sistema:</p>
+      <ul style="padding-left: 20px; font-size: 13px;">
+        <li><b>Alunos</b> – lista todos os alunos cadastrados.</li>
+        <li><b>Disciplinas</b> – mostra as disciplinas disponíveis.</li>
+        <li><b>Turmas</b> – exibe ofertas de disciplinas por ano e semestre.</li>
+        <li><b>Notas</b> – exibe as notas lançadas por avaliação.</li>
+      </ul>
+    </section>
 
-  <h2>Disciplinas</h2>
-  <ul id="disciplinas"></ul>
+    <!-- Cards de funcionalidades -->
+    <section class="cards">
+      <article class="card">
+        <h3>Alunos</h3>
+        <p>Veja rapidamente todos os alunos cadastrados no sistema.</p>
+        <button class="btn" onclick="carregarAlunos()">Listar alunos</button>
+      </article>
 
-  <h2>Turmas</h2>
-  <ul id="turmas"></ul>
+      <article class="card">
+        <h3>Disciplinas</h3>
+        <p>Consulte as disciplinas oferecidas pela instituição.</p>
+        <button class="btn" onclick="carregarDisciplinas()">Listar disciplinas</button>
+      </article>
 
-  <h2>Notas</h2>
-  <ul id="notas"></ul>
+      <article class="card">
+        <h3>Turmas</h3>
+        <p>Veja as turmas abertas por ano, semestre e disciplina.</p>
+        <button class="btn" onclick="carregarTurmas()">Listar turmas</button>
+      </article>
+
+      <article class="card">
+        <h3>Notas</h3>
+        <p>Confira rapidamente as notas lançadas para avaliações e matrículas.</p>
+        <button class="btn" onclick="carregarNotas()">Listar notas</button>
+      </article>
+    </section>
+
+    <!-- Listagens -->
+    <section>
+      <h2 class="section-title">Alunos</h2>
+      <p id="alunos-empty" class="empty-text">Clique em <b>Listar alunos</b> para carregar os dados.</p>
+      <div id="alunos-container"></div>
+
+      <h2 class="section-title">Disciplinas</h2>
+      <p id="disciplinas-empty" class="empty-text">Clique em <b>Listar disciplinas</b> para carregar os dados.</p>
+      <div id="disciplinas-container"></div>
+
+      <h2 class="section-title">Turmas</h2>
+      <p id="turmas-empty" class="empty-text">Clique em <b>Listar turmas</b> para carregar os dados.</p>
+      <div id="turmas-container"></div>
+
+      <h2 class="section-title">Notas</h2>
+      <p id="notas-empty" class="empty-text">Clique em <b>Listar notas</b> para carregar os dados.</p>
+      <div id="notas-container"></div>
+    </section>
+  </main>
 
   <script>
-    async function carregar() {
-      document.getElementById("status").innerText = "Carregando...";
-
-      try {
-        const alunos = await fetch("/alunos").then(r => r.json());
-        const disciplinas = await fetch("/disciplinas").then(r => r.json());
-        const turmas = await fetch("/turmas").then(r => r.json());
-        const notas = await fetch("/notas").then(r => r.json());
-
-        // Mostra alunos
-        let listaAlunos = "";
-        alunos.forEach(a => listaAlunos += `<li>${a.id} - ${a.nome} (${a.matricula})</li>`);
-        document.getElementById("alunos").innerHTML = listaAlunos || "<li>Nenhum aluno encontrado.</li>";
-
-        // Mostra disciplinas
-        let listaDisciplinas = "";
-        disciplinas.forEach(d => listaDisciplinas += `<li>${d.codigo} - ${d.nome}</li>`);
-        document.getElementById("disciplinas").innerHTML = listaDisciplinas || "<li>Nenhuma disciplina encontrada.</li>";
-
-        // Mostra turmas
-        let listaTurmas = "";
-        turmas.forEach(t => listaTurmas += `<li>${t.id} - ${t.disciplina_nome} (${t.ano}/${t.semestre})</li>`);
-        document.getElementById("turmas").innerHTML = listaTurmas || "<li>Nenhuma turma encontrada.</li>";
-
-        // Mostra notas
-        let listaNotas = "";
-        notas.forEach(n => listaNotas += `<li>${n.id} - Avaliação ${n.avaliacao_id} / Matrícula ${n.matricula_id}: ${n.nota}</li>`);
-        document.getElementById("notas").innerHTML = listaNotas || "<li>Nenhuma nota lançada.</li>";
-
-        document.getElementById("status").innerText = "Dados carregados com sucesso ✅";
-      } catch (err) {
-        document.getElementById("status").innerText = "Erro ao carregar dados ❌";
-        console.error(err);
+    async function carregar(endpoint) {
+      const resp = await fetch(endpoint);
+      if (!resp.ok) {
+        alert("Erro ao buscar " + endpoint + ": " + resp.status);
+        return [];
       }
+      return await resp.json();
+    }
+
+    function montarTabela(campos, dados) {
+      if (!dados || dados.length === 0) {
+        return "<p class='empty-text'>Nenhum registro encontrado.</p>";
+      }
+
+      let thead = "<tr>" + campos.map(c => `<th>${c.label}</th>`).join("") + "</tr>";
+      let linhas = dados.map(linha => {
+        return "<tr>" + campos.map(c => `<td>${linha[c.campo] ?? ""}</td>`).join("") + "</tr>";
+      }).join("");
+
+      return `<table><thead>${thead}</thead><tbody>${linhas}</tbody></table>`;
+    }
+
+    // ALUNOS
+    async function carregarAlunos() {
+      const dados = await carregar("/alunos");
+      const campos = [
+        { campo: "id",          label: "ID" },
+        { campo: "nome",        label: "Nome" },
+        { campo: "matricula",   label: "Matrícula" },
+        { campo: "usuario_id",  label: "Usuário ID" }
+      ];
+      document.getElementById("alunos-container").innerHTML = montarTabela(campos, dados);
+      document.getElementById("alunos-empty").style.display = "none";
+    }
+
+    // DISCIPLINAS
+    async function carregarDisciplinas() {
+      const dados = await carregar("/disciplinas");
+      const campos = [
+        { campo: "id",     label: "ID" },
+        { campo: "codigo", label: "Código" },
+        { campo: "nome",   label: "Nome" }
+      ];
+      document.getElementById("disciplinas-container").innerHTML = montarTabela(campos, dados);
+      document.getElementById("disciplinas-empty").style.display = "none";
+    }
+
+    // TURMAS
+    async function carregarTurmas() {
+      const dados = await carregar("/turmas");
+      const campos = [
+        { campo: "id",                 label: "ID" },
+        { campo: "disciplina_codigo",  label: "Cód. Disciplina" },
+        { campo: "disciplina_nome",    label: "Disciplina" },
+        { campo: "ano",                label: "Ano" },
+        { campo: "semestre",           label: "Semestre" },
+        { campo: "professor_id",       label: "Professor ID" }
+      ];
+      document.getElementById("turmas-container").innerHTML = montarTabela(campos, dados);
+      document.getElementById("turmas-empty").style.display = "none";
+    }
+
+    // NOTAS
+    async function carregarNotas() {
+      const dados = await carregar("/notas");
+      const campos = [
+        { campo: "id",           label: "ID" },
+        { campo: "avaliacao_id", label: "Avaliação ID" },
+        { campo: "matricula_id", label: "Matrícula ID" },
+        { campo: "nota",         label: "Nota" }
+      ];
+      document.getElementById("notas-container").innerHTML = montarTabela(campos, dados);
+      document.getElementById("notas-empty").style.display = "none";
     }
   </script>
 </body>
