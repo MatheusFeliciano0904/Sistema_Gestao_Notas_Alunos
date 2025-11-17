@@ -136,99 +136,337 @@ INSERT INTO professores (usuario_id, titulacao) VALUES
 
 
 
-/* =====================================================
-   ALUNOS VINCULADOS AO USUÁRIO
-===================================================== */
+/* =========================
+   ALUNOS, DISCIPLINAS, TURMAS, MATRÍCULAS, AVALIAÇÕES E NOTAS
+   (com notas diferentes para cada aluno)
+   ========================= */
+
+-- Alunos vinculados aos usuários já existentes
 INSERT INTO alunos (nome, matricula, usuario_id) VALUES
 ('Maria da Silva',  '2025A0001', (SELECT id FROM usuarios WHERE email='maria.aluna@escola.com')),
 ('Carlos Souza',    '2025A0002', (SELECT id FROM usuarios WHERE email='carlos.aluno@escola.com'));
 
-
-
-/* =====================================================
-   DISCIPLINAS
-===================================================== */
+-- Disciplinas
 INSERT INTO disciplinas (codigo, nome) VALUES
 ('LP101', 'Linguagem de Programação I'),
-('BD101', 'Banco de Dados I'),
-('ADS201', 'Algoritmos e Estrutura de Dados'),
-('WEB101', 'Desenvolvimento Web I');
+('BD101', 'Banco de Dados I');
 
-
-
-/* =====================================================
-   TURMAS — 2025/1
-===================================================== */
+-- Turma de LP101 (2025/1)
 INSERT INTO turmas (disciplina_id, professor_id, ano, semestre) VALUES
-((SELECT id FROM disciplinas WHERE codigo='LP101'),
- (SELECT usuario_id FROM professores WHERE usuario_id = (SELECT id FROM usuarios WHERE email='joao.prof@escola.com')),
- 2025, 1),
+(
+  (SELECT id FROM disciplinas WHERE codigo = 'LP101'),
+  (SELECT usuario_id FROM professores LIMIT 1),
+  2025, 1
+);
 
-((SELECT id FROM disciplinas WHERE codigo='BD101'),
- (SELECT usuario_id FROM professores WHERE usuario_id = (SELECT id FROM usuarios WHERE email='carla.prof@escola.com')),
- 2025, 1);
+-- Turma de BD101 (2025/1)
+INSERT INTO turmas (disciplina_id, professor_id, ano, semestre) VALUES
+(
+  (SELECT id FROM disciplinas WHERE codigo = 'BD101'),
+  (SELECT usuario_id FROM professores LIMIT 1),
+  2025, 1
+);
 
-
-
-/* =====================================================
-   MATRÍCULAS — alunos em todas as turmas
-===================================================== */
+-- Matrículas:
+-- Maria e Carlos em LP101
 INSERT INTO matriculas (turma_id, aluno_id) VALUES
--- Turma 1 (LP101)
-((SELECT id FROM turmas WHERE disciplina_id = (SELECT id FROM disciplinas WHERE codigo='LP101')),
- (SELECT id FROM alunos WHERE matricula='2025A0001')),
+(
+  (SELECT t.id FROM turmas t JOIN disciplinas d ON d.id = t.disciplina_id
+   WHERE d.codigo = 'LP101' AND t.ano = 2025 AND t.semestre = 1),
+  (SELECT id FROM alunos WHERE matricula = '2025A0001')
+),
+(
+  (SELECT t.id FROM turmas t JOIN disciplinas d ON d.id = t.disciplina_id
+   WHERE d.codigo = 'LP101' AND t.ano = 2025 AND t.semestre = 1),
+  (SELECT id FROM alunos WHERE matricula = '2025A0002')
+);
 
-((SELECT id FROM turmas WHERE disciplina_id = (SELECT id FROM disciplinas WHERE codigo='LP101')),
- (SELECT id FROM alunos WHERE matricula='2025A0002')),
+-- Maria e Carlos em BD101
+INSERT INTO matriculas (turma_id, aluno_id) VALUES
+(
+  (SELECT t.id FROM turmas t JOIN disciplinas d ON d.id = t.disciplina_id
+   WHERE d.codigo = 'BD101' AND t.ano = 2025 AND t.semestre = 1),
+  (SELECT id FROM alunos WHERE matricula = '2025A0001')
+),
+(
+  (SELECT t.id FROM turmas t JOIN disciplinas d ON d.id = t.disciplina_id
+   WHERE d.codigo = 'BD101' AND t.ano = 2025 AND t.semestre = 1),
+  (SELECT id FROM alunos WHERE matricula = '2025A0002')
+);
 
--- Turma 2 (BD101)
-((SELECT id FROM turmas WHERE disciplina_id = (SELECT id FROM disciplinas WHERE codigo='BD101')),
- (SELECT id FROM alunos WHERE matricula='2025A0001')),
-
-((SELECT id FROM turmas WHERE disciplina_id = (SELECT id FROM disciplinas WHERE codigo='BD101')),
- (SELECT id FROM alunos WHERE matricula='2025A0002'));
-
-
-
-/* =====================================================
-   AVALIAÇÕES — pesos fechando 100% por disciplina
-===================================================== */
-
--- LP101
+-- Avaliações de LP101 (pesos somando 100%)
 INSERT INTO avaliacoes (turma_id, titulo, peso_percent) VALUES
-((SELECT id FROM turmas WHERE disciplina_id=(SELECT id FROM disciplinas WHERE codigo='LP101')), 'Prova 1', 40),
-((SELECT id FROM turmas WHERE disciplina_id=(SELECT id FROM disciplinas WHERE codigo='LP101')), 'Projeto', 30),
-((SELECT id FROM turmas WHERE disciplina_id=(SELECT id FROM disciplinas WHERE codigo='LP101')), 'Prova 2', 30);
+(
+  (SELECT t.id FROM turmas t JOIN disciplinas d ON d.id = t.disciplina_id
+   WHERE d.codigo = 'LP101' AND t.ano = 2025 AND t.semestre = 1),
+  'Prova 1', 40.00
+),
+(
+  (SELECT t.id FROM turmas t JOIN disciplinas d ON d.id = t.disciplina_id
+   WHERE d.codigo = 'LP101' AND t.ano = 2025 AND t.semestre = 1),
+  'Trabalho', 20.00
+),
+(
+  (SELECT t.id FROM turmas t JOIN disciplinas d ON d.id = t.disciplina_id
+   WHERE d.codigo = 'LP101' AND t.ano = 2025 AND t.semestre = 1),
+  'Prova 2', 40.00
+);
 
--- BD101
+-- Avaliações de BD101 (mesma distribuição de pesos)
 INSERT INTO avaliacoes (turma_id, titulo, peso_percent) VALUES
-((SELECT id FROM turmas WHERE disciplina_id=(SELECT id FROM disciplinas WHERE codigo='BD101')), 'Prova Teórica', 50),
-((SELECT id FROM turmas WHERE disciplina_id=(SELECT id FROM disciplinas WHERE codigo='BD101')), 'Trabalho SQL', 20),
-((SELECT id FROM turmas WHERE disciplina_id=(SELECT id FROM disciplinas WHERE codigo='BD101')), 'Prova Prática', 30);
+(
+  (SELECT t.id FROM turmas t JOIN disciplinas d ON d.id = t.disciplina_id
+   WHERE d.codigo = 'BD101' AND t.ano = 2025 AND t.semestre = 1),
+  'Prova 1', 40.00
+),
+(
+  (SELECT t.id FROM turmas t JOIN disciplinas d ON d.id = t.disciplina_id
+   WHERE d.codigo = 'BD101' AND t.ano = 2025 AND t.semestre = 1),
+  'Trabalho', 20.00
+),
+(
+  (SELECT t.id FROM turmas t JOIN disciplinas d ON d.id = t.disciplina_id
+   WHERE d.codigo = 'BD101' AND t.ano = 2025 AND t.semestre = 1),
+  'Prova 2', 40.00
+);
 
+-- ========================
+-- NOTAS DIFERENTES POR ALUNO
+-- ========================
 
+/* Para facilitar, vamos usar subselects que pegam:
+   - id da avaliação (por título + disciplina + ano/semestre)
+   - id da matrícula (por disciplina + aluno)
+*/
 
-/* =====================================================
-   NOTAS — automáticas e completas
-   Cada avaliação recebe notas aleatórias 7–10
-===================================================== */
+/* -------- LP101 (Linguagem de Programação I) -------- */
 
--- NOTAS — LP101 (3 avaliações × 2 alunos = 6 notas)
-INSERT INTO notas (avaliacao_id, matricula_id, nota)
-SELECT a.id, m.id, 8.5
-FROM avaliacoes a
-JOIN matriculas m ON m.turma_id = a.turma_id
-WHERE a.turma_id = (SELECT id FROM turmas WHERE disciplina_id=(SELECT id FROM disciplinas WHERE codigo='LP101'))
-ORDER BY a.id, m.id;
+-- Maria (2025A0001) em LP101:
+-- Prova 1: 9.0, Trabalho: 8.0, Prova 2: 9.5
 
--- NOTAS — BD101 (3 avaliações × 2 alunos = 6 notas)
-INSERT INTO notas (avaliacao_id, matricula_id, nota)
-SELECT a.id, m.id, 9.0
-FROM avaliacoes a
-JOIN matriculas m ON m.turma_id = a.turma_id
-WHERE a.turma_id = (SELECT id FROM turmas WHERE disciplina_id=(SELECT id FROM disciplinas WHERE codigo='BD101'))
-ORDER BY a.id, m.id;
+INSERT INTO notas (avaliacao_id, matricula_id, nota) VALUES
+(
+  -- Prova 1 - LP101 - Maria
+  (SELECT av.id
+   FROM avaliacoes av
+   JOIN turmas t   ON t.id = av.turma_id
+   JOIN disciplinas d ON d.id = t.disciplina_id
+   WHERE d.codigo = 'LP101' AND av.titulo = 'Prova 1'
+         AND t.ano = 2025 AND t.semestre = 1),
+  (SELECT m.id
+   FROM matriculas m
+   JOIN turmas t   ON t.id = m.turma_id
+   JOIN disciplinas d ON d.id = t.disciplina_id
+   JOIN alunos a   ON a.id = m.aluno_id
+   WHERE d.codigo = 'LP101' AND a.matricula = '2025A0001'
+         AND t.ano = 2025 AND t.semestre = 1),
+  9.0
+),
+(
+  -- Trabalho - LP101 - Maria
+  (SELECT av.id
+   FROM avaliacoes av
+   JOIN turmas t   ON t.id = av.turma_id
+   JOIN disciplinas d ON d.id = t.disciplina_id
+   WHERE d.codigo = 'LP101' AND av.titulo = 'Trabalho'
+         AND t.ano = 2025 AND t.semestre = 1),
+  (SELECT m.id
+   FROM matriculas m
+   JOIN turmas t   ON t.id = m.turma_id
+   JOIN disciplinas d ON d.id = t.disciplina_id
+   JOIN alunos a   ON a.id = m.aluno_id
+   WHERE d.codigo = 'LP101' AND a.matricula = '2025A0001'
+         AND t.ano = 2025 AND t.semestre = 1),
+  8.0
+),
+(
+  -- Prova 2 - LP101 - Maria
+  (SELECT av.id
+   FROM avaliacoes av
+   JOIN turmas t   ON t.id = av.turma_id
+   JOIN disciplinas d ON d.id = t.disciplina_id
+   WHERE d.codigo = 'LP101' AND av.titulo = 'Prova 2'
+         AND t.ano = 2025 AND t.semestre = 1),
+  (SELECT m.id
+   FROM matriculas m
+   JOIN turmas t   ON t.id = m.turma_id
+   JOIN disciplinas d ON d.id = t.disciplina_id
+   JOIN alunos a   ON a.id = m.aluno_id
+   WHERE d.codigo = 'LP101' AND a.matricula = '2025A0001'
+         AND t.ano = 2025 AND t.semestre = 1),
+  9.5
+);
 
+-- Carlos (2025A0002) em LP101:
+-- Prova 1: 7.0, Trabalho: 6.5, Prova 2: 8.0
 
+INSERT INTO notas (avaliacao_id, matricula_id, nota) VALUES
+(
+  -- Prova 1 - LP101 - Carlos
+  (SELECT av.id
+   FROM avaliacoes av
+   JOIN turmas t   ON t.id = av.turma_id
+   JOIN disciplinas d ON d.id = t.disciplina_id
+   WHERE d.codigo = 'LP101' AND av.titulo = 'Prova 1'
+         AND t.ano = 2025 AND t.semestre = 1),
+  (SELECT m.id
+   FROM matriculas m
+   JOIN turmas t   ON t.id = m.turma_id
+   JOIN disciplinas d ON d.id = t.disciplina_id
+   JOIN alunos a   ON a.id = m.aluno_id
+   WHERE d.codigo = 'LP101' AND a.matricula = '2025A0002'
+         AND t.ano = 2025 AND t.semestre = 1),
+  7.0
+),
+(
+  -- Trabalho - LP101 - Carlos
+  (SELECT av.id
+   FROM avaliacoes av
+   JOIN turmas t   ON t.id = av.turma_id
+   JOIN disciplinas d ON d.id = t.disciplina_id
+   WHERE d.codigo = 'LP101' AND av.titulo = 'Trabalho'
+         AND t.ano = 2025 AND t.semestre = 1),
+  (SELECT m.id
+   FROM matriculas m
+   JOIN turmas t   ON t.id = m.turma_id
+   JOIN disciplinas d ON d.id = t.disciplina_id
+   JOIN alunos a   ON a.id = m.aluno_id
+   WHERE d.codigo = 'LP101' AND a.matricula = '2025A0002'
+         AND t.ano = 2025 AND t.semestre = 1),
+  6.5
+),
+(
+  -- Prova 2 - LP101 - Carlos
+  (SELECT av.id
+   FROM avaliacoes av
+   JOIN turmas t   ON t.id = av.turma_id
+   JOIN disciplinas d ON d.id = t.disciplina_id
+   WHERE d.codigo = 'LP101' AND av.titulo = 'Prova 2'
+         AND t.ano = 2025 AND t.semestre = 1),
+  (SELECT m.id
+   FROM matriculas m
+   JOIN turmas t   ON t.id = m.turma_id
+   JOIN disciplinas d ON d.id = t.disciplina_id
+   JOIN alunos a   ON a.id = m.aluno_id
+   WHERE d.codigo = 'LP101' AND a.matricula = '2025A0002'
+         AND t.ano = 2025 AND t.semestre = 1),
+  8.0
+);
 
-/* ===================== FIM DO SCRIPT ===================== */
+/* -------- BD101 (Banco de Dados I) -------- */
+
+-- Para BD101, vamos usar outro conjunto de notas,
+-- também diferentes entre Maria e Carlos.
+
+-- Maria em BD101:
+-- Prova 1: 8.0, Trabalho: 9.0, Prova 2: 8.5
+INSERT INTO notas (avaliacao_id, matricula_id, nota) VALUES
+(
+  -- Prova 1 - BD101 - Maria
+  (SELECT av.id
+   FROM avaliacoes av
+   JOIN turmas t   ON t.id = av.turma_id
+   JOIN disciplinas d ON d.id = t.disciplina_id
+   WHERE d.codigo = 'BD101' AND av.titulo = 'Prova 1'
+         AND t.ano = 2025 AND t.semestre = 1),
+  (SELECT m.id
+   FROM matriculas m
+   JOIN turmas t   ON t.id = m.turma_id
+   JOIN disciplinas d ON d.id = t.disciplina_id
+   JOIN alunos a   ON a.id = m.aluno_id
+   WHERE d.codigo = 'BD101' AND a.matricula = '2025A0001'
+         AND t.ano = 2025 AND t.semestre = 1),
+  8.0
+),
+(
+  -- Trabalho - BD101 - Maria
+  (SELECT av.id
+   FROM avaliacoes av
+   JOIN turmas t   ON t.id = av.turma_id
+   JOIN disciplinas d ON d.id = t.disciplina_id
+   WHERE d.codigo = 'BD101' AND av.titulo = 'Trabalho'
+         AND t.ano = 2025 AND t.semestre = 1),
+  (SELECT m.id
+   FROM matriculas m
+   JOIN turmas t   ON t.id = m.turma_id
+   JOIN disciplinas d ON d.id = t.disciplina_id
+   JOIN alunos a   ON a.id = m.aluno_id
+   WHERE d.codigo = 'BD101' AND a.matricula = '2025A0001'
+         AND t.ano = 2025 AND t.semestre = 1),
+  9.0
+),
+(
+  -- Prova 2 - BD101 - Maria
+  (SELECT av.id
+   FROM avaliacoes av
+   JOIN turmas t   ON t.id = av.turma_id
+   JOIN disciplinas d ON d.id = t.disciplina_id
+   WHERE d.codigo = 'BD101' AND av.titulo = 'Prova 2'
+         AND t.ano = 2025 AND t.semestre = 1),
+  (SELECT m.id
+   FROM matriculas m
+   JOIN turmas t   ON t.id = m.turma_id
+   JOIN disciplinas d ON d.id = t.disciplina_id
+   JOIN alunos a   ON a.id = m.aluno_id
+   WHERE d.codigo = 'BD101' AND a.matricula = '2025A0001'
+         AND t.ano = 2025 AND t.semestre = 1),
+  8.5
+);
+
+-- Carlos em BD101:
+-- Prova 1: 6.0, Trabalho: 7.0, Prova 2: 6.5
+INSERT INTO notas (avaliacao_id, matricula_id, nota) VALUES
+(
+  -- Prova 1 - BD101 - Carlos
+  (SELECT av.id
+   FROM avaliacoes av
+   JOIN turmas t   ON t.id = av.turma_id
+   JOIN disciplinas d ON d.id = t.disciplina_id
+   WHERE d.codigo = 'BD101' AND av.titulo = 'Prova 1'
+         AND t.ano = 2025 AND t.semestre = 1),
+  (SELECT m.id
+   FROM matriculas m
+   JOIN turmas t   ON t.id = m.turma_id
+   JOIN disciplinas d ON d.id = t.disciplina_id
+   JOIN alunos a   ON a.id = m.aluno_id
+   WHERE d.codigo = 'BD101' AND a.matricula = '2025A0002'
+         AND t.ano = 2025 AND t.semestre = 1),
+  6.0
+),
+(
+  -- Trabalho - BD101 - Carlos
+  (SELECT av.id
+   FROM avaliacoes av
+   JOIN turmas t   ON t.id = av.turma_id
+   JOIN disciplinas d ON d.id = t.disciplina_id
+   WHERE d.codigo = 'BD101' AND av.titulo = 'Trabalho'
+         AND t.ano = 2025 AND t.semestre = 1),
+  (SELECT m.id
+   FROM matriculas m
+   JOIN turmas t   ON t.id = m.turma_id
+   JOIN disciplinas d ON d.id = t.disciplina_id
+   JOIN alunos a   ON a.id = m.aluno_id
+   WHERE d.codigo = 'BD101' AND a.matricula = '2025A0002'
+         AND t.ano = 2025 AND t.semestre = 1),
+  7.0
+),
+(
+  -- Prova 2 - BD101 - Carlos
+  (SELECT av.id
+   FROM avaliacoes av
+   JOIN turmas t   ON t.id = av.turma_id
+   JOIN disciplinas d ON d.id = t.disciplina_id
+   WHERE d.codigo = 'BD101' AND av.titulo = 'Prova 2'
+         AND t.ano = 2025 AND t.semestre = 1),
+  (SELECT m.id
+   FROM matriculas m
+   JOIN turmas t   ON t.id = m.turma_id
+   JOIN disciplinas d ON d.id = t.disciplina_id
+   JOIN alunos a   ON a.id = m.aluno_id
+   WHERE d.codigo = 'BD101' AND a.matricula = '2025A0002'
+         AND t.ano = 2025 AND t.semestre = 1),
+  6.5
+);
+
+-- FIM DOS DADOS DE EXEMPLO
+
