@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Boletim do Aluno</title>
+</head>
+<body>
+  <h1>Boletim do Aluno</h1>
+
+  <label for="alunoId">ID do aluno:</label>
+  <input type="number" id="alunoId" value="1">
+  <button onclick="carregarBoletim()">Carregar boletim</button>
+
+  <p id="status"></p>
+
+  <table border="1" cellpadding="4" cellspacing="0">
+    <thead>
+      <tr>
+        <th>Disciplina</th>
+        <th>Ano</th>
+        <th>Semestre</th>
+        <th>Média</th>
+        <th>Situação</th>
+      </tr>
+    </thead>
+    <tbody id="tbBoletim">
+    </tbody>
+  </table>
+
+  <script>
+    async function carregarBoletim() {
+      const alunoId = document.getElementById("alunoId").value;
+      const status = document.getElementById("status");
+      const tbody = document.getElementById("tbBoletim");
+
+      if (!alunoId) {
+        status.innerText = "Informe o ID do aluno.";
+        return;
+      }
+
+      status.innerText = "Carregando...";
+
+      try {
+        const resp = await fetch(`/relatorios/alunos/${alunoId}/boletim`);
+        const dados = await resp.json();
+
+        if (!Array.isArray(dados) || dados.length === 0) {
+          tbody.innerHTML = "<tr><td colspan='5'>Nenhum registro encontrado.</td></tr>";
+          status.innerText = "Sem dados para este aluno.";
+          return;
+        }
+
+        let linhas = "";
+        dados.forEach(r => {
+          linhas += `
+            <tr>
+              <td>${r.disciplina_nome} (${r.disciplina_codigo})</td>
+              <td>${r.ano}</td>
+              <td>${r.semestre}</td>
+              <td>${r.media_final ?? "-"}</td>
+              <td>${r.situacao}</td>
+            </tr>
+          `;
+        });
+        tbody.innerHTML = linhas;
+        status.innerText = "Boletim carregado com sucesso.";
+      } catch (e) {
+        console.error(e);
+        status.innerText = "Erro ao carregar boletim.";
+      }
+    }
+  </script>
+</body>
+</html>
